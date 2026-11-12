@@ -33,6 +33,7 @@ jobs:
           source tooling/env.sh
           export GRADLE_USER_HOME=/mnt/toolchain/gradle
           export PUB_CACHE=/mnt/toolchain/pub-cache
+          yes | sdkmanager --sdk_root="$ANDROID_HOME" "ndk;28.2.13676358" >/dev/null || true
           DSH_BETA_TOKEN_FILE= bash tooling/build-apk.sh -f arm64
 
       - name: Upload APK artifact
