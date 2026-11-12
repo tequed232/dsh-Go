@@ -1,0 +1,40 @@
+# Personal fork build: arm64-v8a release APK with Shizuku/ADB privileged support.
+# Trigger manually from the Actions tab (workflow_dispatch).
+name: Build APK (arm64)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-arm64:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install toolchain (JDK 17, Flutter 3.47.7, Android SDK/NDK)
+        run: bash tooling/setup-toolchain.sh
+        env:
+          DEV_ROOT: /mnt/toolchain
+
+      - name: Build bundled Linux runtime (arm64-v8a)
+        run: |
+          source tooling/env.sh
+          export GRADLE_USER_HOME=/mnt/toolchain/gradle
+          export PUB_CACHE=/mnt/toolchain/pub-cache
+          bash runtime/build-runtime.sh arm64-v8a
+
+      - name: Build APK (arm64, release)
+        run: |
+          source tooling/env.sh
+          export GRADLE_USER_HOME=/mnt/toolchain/gradle
+          export PUB_CACHE=/mnt/toolchain/pub-cache
+          DSH_BETA_TOKEN_FILE= bash tooling/build-apk.sh -f arm64
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsh-go-arm64-release-apk
+          path: app/build/app/outputs/flutter-apk/app-arm64-release.apk
+          if-no-files-found: error
